@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+from pathlib import Path
 st.title("Echo Bot")
 
 if "history" not in st.session_state:
@@ -11,14 +12,18 @@ if prompt:
     st.session_state.history.append(("You",prompt))
     st.session_state.history.append(("Bot",prompt))
     
-svg_directory = "/Users/eljo/Desktop/projects/applications/ai-assistant/services/frontend_streamlit/svg_files" #Absolute Path for AI SVG
-svg_filename = "robot-svgrepo-com.svg"
-svg_file_path = os.path.join(svg_directory, svg_filename)
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
+SVG_DIR = ROOT / "svg_files"
+    
+ #Relative Path for AI SVG
+robot_svg = SVG_DIR / "robot-svgrepo-com.svg"
+svg_file_path = str(robot_svg)
 
     
-svg_directory2 = "/Users/eljo/Desktop/projects/applications/ai-assistant/services/frontend_streamlit/svg_files" #Absolute Path for User SVG
-svg_filename2 = "user-svgrepo-com.svg"
-svg_file_path2 = os.path.join(svg_directory2, svg_filename2)
+ #Relative Path for User SVG
+user_svg = SVG_DIR / "user-svgrepo-com.svg"
+svg_file_path2 = str(user_svg)
 
 
 for speaker,text in st.session_state.history:
