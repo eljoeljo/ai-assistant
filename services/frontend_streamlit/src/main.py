@@ -1,4 +1,5 @@
 import streamlit as st
+
 import os
 from pathlib import Path
 st.title("Echo Bot")
@@ -33,6 +34,9 @@ for speaker,text in st.session_state.history:
         else:
             with st.chat_message("echobot",avatar=svg_file_path): #To differentiate between the user and bot output
                 st.markdown(f"{text}")
+
+
+
 
     
     
