@@ -1,8 +1,12 @@
 import streamlit as st
-
+from google import genai
 import os
+import requests
 from pathlib import Path
+
 st.title("Echo Bot")
+client = genai.Client() #Instantiating client and reading key
+API_KEY = os.getenv("GEMINI_API_KEY") #Loading API Key
 
 if "history" not in st.session_state:
     st.session_state.history = [] #Array to keep track of history
@@ -11,7 +15,10 @@ if "history" not in st.session_state:
 prompt = st.chat_input("Say something")
 if prompt:
     st.session_state.history.append(("You",prompt))
-    st.session_state.history.append(("Bot",prompt))
+    response = client.models.generate_content( #Sending prompt to Gemini
+    model="gemini-2.5-flash", contents=prompt
+    )
+    st.session_state.history.append(("Bot",response.text))
     
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
