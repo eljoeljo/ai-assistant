@@ -3,6 +3,7 @@ from google import genai
 import os
 import requests
 from pathlib import Path
+from api import gemini_api_call
 
 st.title("Echo Bot")
 
@@ -18,19 +19,6 @@ svg_file_path2 = str(user_svg)
 
 
 
-API_KEY = os.getenv("GEMINI_API_KEY") #Loading API Key
-
-url = ( #Defining the REST endpoint and headers
-    "https://generativelanguage.googleapis.com/"
-    "v1beta/models/gemini-2.5-flash:generateContent"
-)
-
-headers = {
-    "Content-Type": "application/json",
-    "X-goog-api-key": API_KEY,    # alternative to ?key= in URL
-}
-
-
 if "history" not in st.session_state:
     st.session_state.history = [] #Array to keep track of history
 
@@ -43,24 +31,12 @@ for speaker,text in st.session_state.history:
 prompt = st.chat_input("Say something")
 #Build the request body
 if prompt:
-    body = {
-    "contents": [
-        {
-            "parts": [
-                {"text": f"{prompt}"}
-            ]
-        }
-    ]
-}
+    
     st.session_state.history.append(("You",prompt))
     with st.chat_message("user",avatar=svg_file_path2):
                 st.markdown(f"{prompt}")
     with st.spinner(text="Thinking...",show_time=True): #To show user that the answer is processing
-        #Sending the request
-        resp = requests.post(url, headers=headers, json=body, timeout=30)
-        resp.raise_for_status()
-        data = resp.json()
-        candidates = data.get("candidates", [])
+        candidates = gemini_api_call(api_key=os.getenv("GEMINI_API_KEY"),prompt=prompt)
         if not candidates:
             print("No response candidates returned.")
         else:
