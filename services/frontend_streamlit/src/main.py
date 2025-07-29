@@ -5,7 +5,7 @@ import requests
 from pathlib import Path
 
 st.title("Echo Bot")
-client = genai.Client() #Instantiating client and reading key
+
 
 #-Avatars- 
 HERE = Path(__file__).resolve().parent
@@ -20,6 +20,17 @@ svg_file_path2 = str(user_svg)
 
 API_KEY = os.getenv("GEMINI_API_KEY") #Loading API Key
 
+url = ( #Defining the REST endpoint and headers
+    "https://generativelanguage.googleapis.com/"
+    "v1beta/models/gemini-2.5-flash:generateContent"
+)
+
+headers = {
+    "Content-Type": "application/json",
+    "X-goog-api-key": API_KEY,    # alternative to ?key= in URL
+}
+
+
 if "history" not in st.session_state:
     st.session_state.history = [] #Array to keep track of history
 
@@ -30,21 +41,36 @@ for speaker,text in st.session_state.history:
         st.markdown(text)
 
 prompt = st.chat_input("Say something")
+#Build the request body
 if prompt:
+    body = {
+    "contents": [
+        {
+            "parts": [
+                {"text": f"{prompt}"}
+            ]
+        }
+    ]
+}
     st.session_state.history.append(("You",prompt))
     with st.chat_message("user",avatar=svg_file_path2):
                 st.markdown(f"{prompt}")
     with st.spinner(text="Thinking...",show_time=True): #To show user that the answer is processing
-        response = client.models.generate_content( #Sending prompt to Gemini
-        model="gemini-2.5-flash", contents=prompt
-        )   
-    
-        bot_text = response.text
-    
+        #Sending the request
+        resp = requests.post(url, headers=headers, json=body, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        candidates = data.get("candidates", [])
+        if not candidates:
+            print("No response candidates returned.")
+        else:
+    # Each candidate has a .content.parts array of {text:"…"} objects
+            first = candidates[0]["content"]
+            text = "".join(part.get("text", "") for part in first.get("parts", []))  
     
         with st.chat_message("echobot",avatar=svg_file_path): #To differentiate between the user and bot output
-                st.markdown(f"{bot_text}")
-        st.session_state.history.append(("Bot",bot_text))
+                st.markdown(f"{text}")
+        st.session_state.history.append(("Bot",text))
     
 
 
